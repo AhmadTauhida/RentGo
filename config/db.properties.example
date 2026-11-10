@@ -1,0 +1,5 @@
+# Neon PostgreSQL connection
+# Copy this file to config/db.properties and set the local password.
+db.url=jdbc:postgresql://ep-autumn-math-a1nu9ugr-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&connectTimeout=15&socketTimeout=30
+db.user=neondb_owner
+db.password=<neon_password>
