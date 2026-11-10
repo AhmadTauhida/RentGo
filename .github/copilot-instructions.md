@@ -1,0 +1,1 @@
+Read `.ai/prd/PRD.md` before changing RentGo. Keep the Eclipse project structure, use only FlatLaf 3.8 and PostgreSQL JDBC 42.7.14, and never commit `config/db.properties`. Java identifiers, SQL names, comments, and Javadoc are English; user-facing Swing text is Indonesian. Compile from the terminal to `build/classes`.
