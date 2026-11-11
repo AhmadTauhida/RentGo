@@ -115,6 +115,7 @@ RentGo/                              ← root repo = root Eclipse project
 ├── .github/
 │   └── copilot-instructions.md      (instruksi singkat agent → menunjuk ke PRD.md)
 ├── PRD.md
+├── ARCHITECTURE.md                  (arsitektur: lapisan, alur, ERD, keputusan)
 ├── README.md
 ├── docs/
 │   ├── DEV-GUIDE-1-MODEL-DB.md          (panduan langkah Anggota 1)
