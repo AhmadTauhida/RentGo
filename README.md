@@ -14,8 +14,9 @@ RentGo is a Java Swing desktop vehicle-rental application using MVC + DAO and Po
 
 1. Copy `config/db.properties.example` to `config/db.properties` and set the local Neon password.
 2. Run `sql/schema.sql` once in the Neon SQL Editor.
-3. Start the application once so `StaffDAO.ensureDefaultAdmin()` can create the initial account.
-4. Run `sql/seed.sql` to load demo vehicles and customers. Transaction examples require the `admin` account to exist.
+3. Run `sql/seed.sql` to load demo vehicles and customers (safe before login).
+4. Start the application once so `StaffDAO.ensureDefaultAdmin()` can create the initial account.
+5. Run `sql/seed_transactions.sql` to load demo transactions (requires the `admin` account).
 
 The initial account is `admin` / `admin123`; change it after the first login.
 
