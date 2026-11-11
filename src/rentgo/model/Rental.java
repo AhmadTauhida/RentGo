@@ -3,6 +3,7 @@ package rentgo.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import rentgo.exception.InvalidDataException;
+import rentgo.util.CurrencyFormatter;
 
 /** A vehicle rental transaction. */
 public class Rental implements PrintableReceipt {
@@ -37,7 +38,16 @@ public class Rental implements PrintableReceipt {
     public RentalStatus getStatus() { return status; }
     public void setStatus(RentalStatus value) { if (value == null) throw new InvalidDataException("Status transaksi wajib dipilih"); status = value; }
     public int getRentalDays() { return Math.max(1, (int) ChronoUnit.DAYS.between(startDate, dueDate)); }
-    public double calculateTotalCost() { totalCost = vehicle.calculateRent(getRentalDays(), withDriver || vehicle.getType() == VehicleType.BUS); return totalCost; }
-    @Override public String printReceipt() { return "STRUK RENTGO\nPelanggan: " + customer.getName() + "\nKendaraan: " + vehicle + "\nTanggal: " + startDate + " s.d. " + dueDate + "\nLama sewa: " + getRentalDays() + " hari\nTotal: Rp" + String.format("%,.0f", totalCost).replace(',', '.') + "\n"; }
+    public double calculateTotalCost() { totalCost = vehicle.calculateRent(getRentalDays(), withDriver); return totalCost; }
+    @Override public String printReceipt() {
+        double total = calculateTotalCost();
+        return "STRUK RENTGO\n"
+                + "Pelanggan: " + customer.getName() + "\n"
+                + "Kendaraan: " + vehicle + "\n"
+                + "Tanggal: " + startDate + " s.d. " + dueDate + "\n"
+                + "Lama sewa: " + getRentalDays() + " hari\n"
+                + "Sopir: " + (withDriver ? "Ya" : "Tidak") + "\n"
+                + "Total: " + CurrencyFormatter.formatRupiah(total) + "\n";
+    }
     @Override public String toString() { return "#" + id + " - " + vehicle + " (" + startDate + ")"; }
 }
