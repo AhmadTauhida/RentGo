@@ -2,6 +2,7 @@ package rentgo.model;
 
 import java.time.LocalDateTime;
 import rentgo.exception.InvalidDataException;
+import rentgo.util.CurrencyFormatter;
 
 /** A payment recorded for a rental. */
 public class Payment implements PrintableReceipt {
@@ -26,5 +27,10 @@ public class Payment implements PrintableReceipt {
     public void setPaidAt(LocalDateTime value) { paidAt = value == null ? LocalDateTime.now() : value; }
     public String getNote() { return note; }
     public void setNote(String value) { note = value; }
-    @Override public String printReceipt() { return "PEMBAYARAN\nMetode: " + method + "\nJumlah: Rp" + String.format("%,.0f", amount).replace(',', '.') + "\nWaktu: " + paidAt + "\n"; }
+    @Override public String printReceipt() {
+        return "PEMBAYARAN\n"
+                + "Metode: " + method + "\n"
+                + "Jumlah: " + CurrencyFormatter.formatRupiah(amount) + "\n"
+                + "Waktu: " + paidAt + "\n";
+    }
 }

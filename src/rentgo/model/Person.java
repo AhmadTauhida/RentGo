@@ -9,7 +9,11 @@ public abstract class Person {
     private String phoneNumber;
 
     protected Person() { }
-    protected Person(int id, String name, String phoneNumber) { this.id = id; setName(name); setPhoneNumber(phoneNumber); }
+    protected Person(int id, String name, String phoneNumber) {
+        setId(id);
+        setName(name);
+        setPhoneNumber(phoneNumber);
+    }
     public int getId() { return id; }
     public void setId(int id) { if (id < 0) throw new InvalidDataException("ID tidak valid"); this.id = id; }
     public String getName() { return name; }
