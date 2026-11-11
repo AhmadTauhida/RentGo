@@ -116,6 +116,10 @@ RentGo/                              ← root repo = root Eclipse project
 │   └── copilot-instructions.md      (instruksi singkat agent → menunjuk ke PRD.md)
 ├── PRD.md
 ├── README.md
+├── docs/
+│   ├── DEV-GUIDE-1-MODEL-DB.md          (panduan langkah Anggota 1)
+│   ├── DEV-GUIDE-2-DAO-CONTROLLER.md    (panduan langkah Anggota 2)
+│   └── DEV-GUIDE-3-VIEW.md              (panduan langkah Anggota 3)
 ├── config/
 │   ├── db.properties.example
 │   └── db.properties                (lokal, di-ignore)
@@ -185,6 +189,7 @@ RentGo/                              ← root repo = root Eclipse project
 ├── test/                            (source folder 2)
 │   └── rentgo/
 │       ├── model/RentalCostTest.java       (console; cek tarif/denda)
+│       ├── view/ViewPreview.java           (opsional; peluncur pratinjau UI dengan data dummy)
 │       └── dao/DaoConsoleTest.java         (console; cek CRUD ke DB)
 ├── build/                           (output compile agent; di-ignore)
 └── bin/                             (output compile Eclipse; di-ignore)
@@ -698,7 +703,7 @@ Kerjakan **berurutan**, lalu berhenti dan laporkan. Jangan mengimplementasikan l
 6. **Verifikasi** dengan perintah §4.4: semua harus compile tanpa error; jalankan `RentalCostTest` dan laporkan hasilnya.
 7. **Jangan** membuat commit atau branch; serahkan ke manusia.
 
-**Tahap berikutnya** (per anggota, di branch masing-masing; prompt contoh):
+**Tahap berikutnya**: ikuti panduan langkah per anggota di `docs/DEV-GUIDE-1-MODEL-DB.md`, `docs/DEV-GUIDE-2-DAO-CONTROLLER.md`, `docs/DEV-GUIDE-3-VIEW.md` (urutan Gate, jadwal, prompt per langkah). Prompt ringkas (per anggota, di branch masing-masing):
 - Anggota 1: *"Baca PRD.md. Lengkapi dan rapikan paket `model` + `RentalCostTest` sampai semua skenario §17 no. 4–6 lulus."*
 - Anggota 2: *"Baca PRD.md. Implementasikan `DatabaseConnection`, `VehicleDAO`, … sesuai §9 dan lengkapi `DaoConsoleTest`; lalu controller sesuai §10."*
 - Anggota 3: *"Baca PRD.md. Implementasikan `LoginFrame`, `MainFrame`, `VehiclePanel`, … sesuai §11 memakai FlatLaf."*
