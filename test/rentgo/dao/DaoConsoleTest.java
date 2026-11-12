@@ -1,7 +1,9 @@
 package rentgo.dao;
 
+import java.sql.SQLException;
 import java.time.Year;
 import java.util.Objects;
+import rentgo.exception.DatabaseException;
 import rentgo.exception.InvalidDataException;
 import rentgo.model.Role;
 import rentgo.model.Staff;
@@ -23,6 +25,8 @@ public final class DaoConsoleTest {
         testValidator();
         testPasswordHasher();
         testSession();
+        System.out.println("== Database error tests ==");
+        testDatabaseTranslate();
         System.out.printf("%nUtil result: %d passed, %d failed%n", passed, failed);
         if (failed > 0) {
             throw new AssertionError(failed + " util test(s) failed");
@@ -75,6 +79,18 @@ public final class DaoConsoleTest {
         check("Session terisi", staff, Session.getStaff());
         Session.clear();
         check("Session dibersihkan", null, Session.getStaff());
+    }
+
+    private static void testDatabaseTranslate() {
+        DatabaseException duplicate = DatabaseConnection.translate(new SQLException("dup", "23505"));
+        check("translate UNIQUE", true, duplicate.getMessage().contains("sudah terdaftar"));
+        check("translate UNIQUE cause", true, duplicate.getCause() instanceof SQLException);
+
+        DatabaseException foreignKey = DatabaseConnection.translate(new SQLException("fk", "23503"));
+        check("translate FK", true, foreignKey.getMessage().contains("masih dipakai"));
+
+        DatabaseException other = DatabaseConnection.translate(new SQLException("putus", "08006"));
+        check("translate umum", true, other.getMessage().contains("Periksa internet"));
     }
 
     private static void check(String label, Object expected, Object actual) {

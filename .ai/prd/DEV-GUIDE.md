@@ -124,18 +124,18 @@ urutan milestone.
 |---|---|---|
 | `model` | 10 kelas + `PrintableReceipt` + 6 enum sudah terisi | Perlu verifikasi kontrak dan edge case, bukan implementasi dari nol |
 | `exception` | 3 custom exception sudah ada | Perlu dipakai konsisten di DAO/controller |
-| `util` | `Validator`, `CurrencyFormatter`, `PasswordHasher`, `Session` terisi; ada perubahan belum di-commit | Review dan commit sebelum M2 |
+| `util` | `Validator`, `CurrencyFormatter`, `PasswordHasher`, `Session` final dan ter-commit di M2 | Siap dipakai controller |
 | `dao` | `DatabaseConnection` + `CrudDAO<T>` ada; semua DAO konkret masih stub `TODO(Anggota 2)` | Login dan seluruh operasi DB belum bisa berjalan |
 | `controller` | Semua controller masih placeholder; `LoginController` melempar `UnsupportedOperationException` | `LoginFrame` belum bisa dipakai end-to-end |
 | `view` | `LoginFrame` cukup lengkap; `MainFrame` dan 6 panel masih placeholder | Navigasi, CRUD, dan transaksi belum tersedia |
 | `Main` | Baru `FlatLightLaf.setup()` dan `LoginFrame` | Belum ada cek koneksi, `ensureDefaultAdmin`, dan wiring controller |
 | SQL | `schema.sql`, `seed.sql`, `seed_transactions.sql` ada | Skema perlu dijalankan dan diverifikasi di Neon |
-| Test | `RentalCostTest` menguji skenario inti + edge case M1; `DaoConsoleTest` 23 cek util lulus | Test DAO dan transaksi belum ada |
+| Test | `RentalCostTest` menguji skenario inti + edge case M1; `DaoConsoleTest` 27 cek util + `translate` lulus | Test DAO dan transaksi menyusul di M3 |
 | Dokumentasi | `.ai/DEVELOPMENT-REFERENCE.md` dan `.ai/prd/DEV-GUIDE.md` belum ter-track | Commit menunggu keputusan tim |
 
 Gap yang harus ditutup lebih dulu:
 
-- Perubahan util dan `DaoConsoleTest` sudah direview serta lulus test; commit terpisah belum dilakukan.
+- Perubahan util dan `DaoConsoleTest` sudah direview, lulus test, dan di-commit saat penutupan M2.
 - `Main` belum memeriksa database dan belum membuat akun admin awal.
 - `seed_transactions.sql` baru bisa dijalankan setelah `StaffDAO.ensureDefaultAdmin()` berjalan.
 - README sudah disamakan dengan perintah build PRD §4.4.
@@ -147,7 +147,7 @@ Gap yang harus ditutup lebih dulu:
 |---|---|---|
 | M0 | Lulus teknis; commit belum dilakukan | Compile bersih; `RentalCostTest` lulus; `DaoConsoleTest` 23/23 util; README build diperbaiki; kontrak dan branch tersedia |
 | M1 | Lulus | Edge case model lulus; 6 tabel terverifikasi di Neon; seed 3 Car/3 Motorcycle/1 Bus/5 Customer; 1 `MAINTENANCE`; constraint `23514`/`23505` menolak data salah |
-| M2 | Belum | Util lulus, tetapi `DatabaseConnection.translate(SQLException)` belum ada dan uji kegagalan koneksi belum dilakukan |
+| M2 | Lulus | Util + `translate` 27/27 lulus; koneksi Neon sukses; config hilang, password salah, dan host tidak terjangkau menghasilkan `DatabaseException` informatif (uji manual, tanpa mengubah `config/db.properties`); tidak ada kredensial tercetak |
 | M3 | Belum | Semua DAO konkret masih stub |
 | M4 | Belum | Controller masih placeholder |
 | M5 | Belum | `MainFrame` dan panel masih placeholder |
@@ -190,7 +190,7 @@ pekerjaan dapat berjalan paralel selama tidak melanggar dependensi:
 |---|---|---|---|---|
 | A | Kerangka proyek + model + exception lengkap, semua compile | Anggota 1 | Selesai dan diverifikasi di M0 | M0–M1 |
 | B | Skema Neon dijalankan + seed tersedia | Anggota 1 | Terbuka: 6 tabel, seed, dan constraint terverifikasi | M1 |
-| C | Util + `DatabaseConnection` siap dipakai | Anggota 2 | Sebagian: util lulus; `translate` dan uji koneksi belum | M2 |
+| C | Util + `DatabaseConnection` siap dipakai | Anggota 2 | Selesai: util + `translate`, koneksi Neon, dan uji kegagalan koneksi terbukti (M2) | M2 |
 | D | DAO + controller P0 selesai | Anggota 2 | Belum | M3–M4 |
 | E | View P0 + wiring `MainFrame` selesai | Anggota 3 | Belum | M5 |
 | F | Acceptance PRD §17 no. 1–12 lulus + siap demo | Tim | Belum | M6 |
@@ -330,24 +330,29 @@ di luar ketentuan; menambah aturan tarif di tempat selain `model`.
 
 **Pekerjaan:**
 
-- [ ] Finalisasi `Validator`: semua method PRD §12, pesan error menyebut nama field,
+- [x] Finalisasi `Validator`: semua method PRD §12, pesan error menyebut nama field,
       `NumberFormatException` dikonversi menjadi `InvalidDataException`.
-- [ ] Verifikasi `CurrencyFormatter.formatRupiah(350000)` menghasilkan `Rp350.000` dan
+- [x] Verifikasi `CurrencyFormatter.formatRupiah(350000)` menghasilkan `Rp350.000` dan
       `parseRupiah("Rp350.000")` menghasilkan `350000.0`.
-- [ ] Verifikasi `PasswordHasher`: hash berbeda tiap panggilan karena salt acak, `verify` benar
+- [x] Verifikasi `PasswordHasher`: hash berbeda tiap panggilan karena salt acak, `verify` benar
       untuk password yang sama, dan `false` untuk password salah atau format rusak.
-- [ ] Verifikasi `Session` set/get/clear.
-- [ ] Tambahkan `DatabaseConnection.translate(SQLException)` untuk menerjemahkan SQLState
+- [x] Verifikasi `Session` set/get/clear.
+- [x] Tambahkan `DatabaseConnection.translate(SQLException)` untuk menerjemahkan SQLState
       `23505` (UNIQUE), `23503` (FK), dan error umum menjadi pesan Indonesia yang ramah.
-- [ ] Pastikan `DatabaseConnection` memuat `config/db.properties`, memanggil
+- [x] Pastikan `DatabaseConnection` memuat `config/db.properties`, memanggil
       `Class.forName("org.postgresql.Driver")`, membuat ulang koneksi yang tertutup/tidak valid,
       dan mencoba ulang satu kali untuk Neon cold start.
-- [ ] Jangan menutup `Connection` bersama dengan try-with-resources. Gunakan try-with-resources
+- [x] Jangan menutup `Connection` bersama dengan try-with-resources. Gunakan try-with-resources
       hanya untuk `PreparedStatement` dan `ResultSet`.
-- [ ] Jangan mencetak password, URL lengkap, atau stack trace ke pengguna.
-- [ ] Uji kegagalan: password salah, file config hilang, dan database tidak terjangkau harus
+- [x] Jangan mencetak password, URL lengkap, atau stack trace ke pengguna.
+- [x] Uji kegagalan: password salah, file config hilang, dan database tidak terjangkau harus
       menghasilkan `DatabaseException` yang informatif.
-- [ ] Lengkapi bagian util di `DaoConsoleTest`.
+- [x] Lengkapi bagian util di `DaoConsoleTest`.
+
+**Bukti uji kegagalan koneksi:** dilakukan manual dari working directory sementara tanpa
+mengubah `config/db.properties` repo. Config hilang, password salah, dan host tidak terjangkau
+menghasilkan `DatabaseException` yang menyebut cek internet, kredensial/URL, dan status Neon.
+Uji ini belum otomatis di `DaoConsoleTest`.
 
 **Deliverable:** util final, koneksi database tangguh, penerjemah SQLException siap dipakai DAO.
 
