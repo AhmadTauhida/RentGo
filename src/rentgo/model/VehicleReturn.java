@@ -3,6 +3,7 @@ package rentgo.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import rentgo.exception.InvalidDataException;
+import rentgo.util.CurrencyFormatter;
 
 /** Records the return of a rented vehicle and any late fee. */
 public class VehicleReturn implements PrintableReceipt {
@@ -27,5 +28,14 @@ public class VehicleReturn implements PrintableReceipt {
     public void setLateFee(double value) { if (!Double.isFinite(value) || value < 0) throw new InvalidDataException("Denda tidak valid"); lateFee = value; }
     public int calculateLateDays() { return Math.max(0, (int) ChronoUnit.DAYS.between(rental.getDueDate(), actualReturnDate)); }
     public double calculateLateFee() { lateFee = calculateLateDays() * LATE_FEE_MULTIPLIER * rental.getVehicle().getBaseRate(); return lateFee; }
-    @Override public String printReceipt() { return "PENGEMBALIAN\nKendaraan: " + rental.getVehicle() + "\nTerlambat: " + calculateLateDays() + " hari\nDenda: Rp" + String.format("%,.0f", lateFee).replace(',', '.') + "\n"; }
+    @Override public String printReceipt() {
+        double fee = calculateLateFee();
+        return "PENGEMBALIAN\n"
+                + "Pelanggan: " + rental.getCustomer().getName() + "\n"
+                + "Kendaraan: " + rental.getVehicle() + "\n"
+                + "Rencana kembali: " + rental.getDueDate() + "\n"
+                + "Tanggal kembali: " + actualReturnDate + "\n"
+                + "Terlambat: " + calculateLateDays() + " hari\n"
+                + "Denda: " + CurrencyFormatter.formatRupiah(fee) + "\n";
+    }
 }
