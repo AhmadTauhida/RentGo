@@ -12,7 +12,14 @@ public abstract class Vehicle {
     private double baseRate;
     private VehicleStatus status;
     protected Vehicle() { }
-    protected Vehicle(int id, String plateNumber, String brand, int manufactureYear, double baseRate, VehicleStatus status) { this.id = id; setPlateNumber(plateNumber); setBrand(brand); setManufactureYear(manufactureYear); setBaseRate(baseRate); setStatus(status); }
+    protected Vehicle(int id, String plateNumber, String brand, int manufactureYear, double baseRate, VehicleStatus status) {
+        setId(id);
+        setPlateNumber(plateNumber);
+        setBrand(brand);
+        setManufactureYear(manufactureYear);
+        setBaseRate(baseRate);
+        setStatus(status);
+    }
     public int getId() { return id; }
     public void setId(int value) { if (value < 0) throw new InvalidDataException("ID tidak valid"); id = value; }
     public String getPlateNumber() { return plateNumber; }
