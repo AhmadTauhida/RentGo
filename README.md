@@ -25,8 +25,9 @@ The initial account is `admin` / `admin123`; change it after the first login.
 ```bash
 rm -rf build/classes
 mkdir -p build/classes
-javac -encoding UTF-8 --module-path lib/flatlaf-3.8.jar:lib/postgresql-42.7.14.jar -d build/classes $(find src test -name '*.java')
-java --module-path build/classes:lib/flatlaf-3.8.jar:lib/postgresql-42.7.14.jar --module RentGo/rentgo.model.RentalCostTest
+javac -encoding UTF-8 -cp "lib/*" -d build/classes $(find src test -name '*.java')
+java -cp "build/classes:lib/*" rentgo.model.RentalCostTest
+java -cp "build/classes:lib/*" rentgo.dao.DaoConsoleTest
 ```
 
 The GUI requires a graphical desktop. Database credentials are local-only and must never be committed.
