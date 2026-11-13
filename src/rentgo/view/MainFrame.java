@@ -3,6 +3,8 @@ package rentgo.view;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -11,7 +13,20 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
+import rentgo.controller.CustomerController;
 import rentgo.controller.LoginController;
+import rentgo.controller.RentalController;
+import rentgo.controller.ReportController;
+import rentgo.controller.UserManagementController;
+import rentgo.controller.VehicleController;
+import rentgo.controller.VehicleReturnController;
+import rentgo.dao.CustomerDAO;
+import rentgo.dao.PaymentDAO;
+import rentgo.dao.RentalDAO;
+import rentgo.dao.ReportDAO;
+import rentgo.dao.StaffDAO;
+import rentgo.dao.VehicleDAO;
+import rentgo.dao.VehicleReturnDAO;
 import rentgo.model.Staff;
 import rentgo.util.Session;
 
@@ -26,6 +41,7 @@ public class MainFrame extends JFrame {
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel cards = new JPanel(cardLayout);
+    private final Map<String, Runnable> loaders = new HashMap<>();
 
     public MainFrame() {
         super("RentGo");
@@ -39,18 +55,52 @@ public class MainFrame extends JFrame {
         buildCards();
         buildMenuBar();
         add(buildStatusBar(), BorderLayout.SOUTH);
+        openCard(VEHICLE);
     }
 
     private void buildCards() {
-        cards.add(new VehiclePanel(), VEHICLE);
-        cards.add(new CustomerPanel(), CUSTOMER);
-        cards.add(new RentalPanel(), RENTAL);
-        cards.add(new VehicleReturnPanel(), RETURN);
-        cards.add(new ReportPanel(), REPORT);
+        VehiclePanel vehiclePanel = new VehiclePanel();
+        VehicleController vehicleController = new VehicleController(vehiclePanel, new VehicleDAO());
+        vehiclePanel.setController(vehicleController);
+        cards.add(vehiclePanel, VEHICLE);
+        loaders.put(VEHICLE, vehicleController::loadData);
+
+        CustomerPanel customerPanel = new CustomerPanel();
+        CustomerController customerController = new CustomerController(customerPanel, new CustomerDAO());
+        customerPanel.setController(customerController);
+        cards.add(customerPanel, CUSTOMER);
+        loaders.put(CUSTOMER, customerController::loadData);
+
+        RentalPanel rentalPanel = new RentalPanel();
+        RentalController rentalController = new RentalController(rentalPanel,
+                new RentalDAO(), new CustomerDAO(), new VehicleDAO(), new PaymentDAO());
+        rentalPanel.setController(rentalController);
+        cards.add(rentalPanel, RENTAL);
+        loaders.put(RENTAL, () -> {
+            rentalController.loadOptions();
+            rentalController.loadHistory();
+        });
+
+        VehicleReturnPanel returnPanel = new VehicleReturnPanel();
+        VehicleReturnController returnController = new VehicleReturnController(
+                returnPanel, new RentalDAO(), new VehicleReturnDAO());
+        returnPanel.setController(returnController);
+        cards.add(returnPanel, RETURN);
+        loaders.put(RETURN, returnController::loadActiveRentals);
+
+        ReportPanel reportPanel = new ReportPanel();
+        ReportController reportController = new ReportController(reportPanel, new ReportDAO());
+        reportPanel.setController(reportController);
+        cards.add(reportPanel, REPORT);
+        loaders.put(REPORT, reportController::loadReport);
 
         Staff staff = Session.getStaff();
         if (staff != null && staff.isAdmin()) {
-            cards.add(new UserManagementPanel(), USERS);
+            UserManagementPanel usersPanel = new UserManagementPanel();
+            UserManagementController usersController = new UserManagementController(usersPanel, new StaffDAO());
+            usersPanel.setController(usersController);
+            cards.add(usersPanel, USERS);
+            loaders.put(USERS, usersController::loadData);
         }
     }
 
@@ -86,8 +136,16 @@ public class MainFrame extends JFrame {
 
     private JMenuItem cardItem(String label, String card) {
         JMenuItem item = new JMenuItem(label);
-        item.addActionListener(event -> showCard(card));
+        item.addActionListener(event -> openCard(card));
         return item;
+    }
+
+    private void openCard(String card) {
+        showCard(card);
+        Runnable loader = loaders.get(card);
+        if (loader != null) {
+            loader.run();
+        }
     }
 
     private JMenuItem logoutItem() {
