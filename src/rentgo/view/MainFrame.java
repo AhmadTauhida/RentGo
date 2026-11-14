@@ -8,10 +8,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.HashMap;
 import java.util.Map;
-
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,8 +18,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
-
+import rentgo.controller.CustomerController;
 import rentgo.controller.LoginController;
+import rentgo.controller.RentalController;
+import rentgo.controller.ReportController;
+import rentgo.controller.UserManagementController;
+import rentgo.controller.VehicleController;
+import rentgo.controller.VehicleReturnController;
+import rentgo.dao.CustomerDAO;
+import rentgo.dao.PaymentDAO;
+import rentgo.dao.RentalDAO;
+import rentgo.dao.ReportDAO;
+import rentgo.dao.StaffDAO;
+import rentgo.dao.VehicleDAO;
+import rentgo.dao.VehicleReturnDAO;
 import rentgo.model.Staff;
 import rentgo.util.Session;
 
@@ -69,15 +80,51 @@ public class MainFrame extends JFrame {
     }
 
     private void buildCards() {
-        cards.add(new VehiclePanel(), VEHICLE);
-        cards.add(new CustomerPanel(), CUSTOMER);
-        cards.add(new RentalPanel(), RENTAL);
-        cards.add(new VehicleReturnPanel(), RETURN);
-        cards.add(new ReportPanel(), REPORT);
+        VehiclePanel vehiclePanel = new VehiclePanel();
+        VehicleController vehicleController = new VehicleController(vehiclePanel, new VehicleDAO());
+        vehiclePanel.setController(vehicleController);
+        cards.add(vehiclePanel, VEHICLE);
+        vehicleController.loadData();
+
+        CustomerPanel customerPanel = new CustomerPanel();
+        CustomerController customerController = new CustomerController(customerPanel, new CustomerDAO());
+        customerPanel.setController(customerController);
+        cards.add(customerPanel, CUSTOMER);
+        customerController.loadData();
+
+        RentalPanel rentalPanel = new RentalPanel();
+        RentalDAO rentalDAO = new RentalDAO();
+        CustomerDAO customerDAO = new CustomerDAO();
+        VehicleDAO vehicleDAO = new VehicleDAO();
+        PaymentDAO paymentDAO = new PaymentDAO();
+        RentalController rentalController = new RentalController(
+            rentalPanel, rentalDAO, customerDAO, vehicleDAO, paymentDAO);
+        rentalPanel.setController(rentalController);
+        cards.add(rentalPanel, RENTAL);
+        rentalController.loadOptions();
+        rentalController.loadHistory();
+
+        VehicleReturnPanel returnPanel = new VehicleReturnPanel();
+        VehicleReturnController returnController = new VehicleReturnController(
+            returnPanel, rentalDAO, new VehicleReturnDAO());
+        returnPanel.setController(returnController);
+        cards.add(returnPanel, RETURN);
+        returnController.loadActiveRentals();
+
+        ReportPanel reportPanel = new ReportPanel();
+        ReportController reportController = new ReportController(reportPanel, new ReportDAO());
+        reportPanel.setController(reportController);
+        cards.add(reportPanel, REPORT);
+        reportController.loadReport();
 
         Staff staff = Session.getStaff();
         if (staff != null && staff.isAdmin()) {
-            cards.add(new UserManagementPanel(), USERS);
+            UserManagementPanel userPanel = new UserManagementPanel();
+            UserManagementController userController = new UserManagementController(
+                userPanel, new StaffDAO());
+            userPanel.setController(userController);
+            cards.add(userPanel, USERS);
+            userController.loadData();
         }
     }
 
@@ -175,7 +222,7 @@ public class MainFrame extends JFrame {
         return bar;
     }
 
-    public void showCard(String name) {
+    public final void showCard(String name) {
         cardLayout.show(cards, name);
         JToggleButton button = navButtons.get(name);
         if (button != null) {
