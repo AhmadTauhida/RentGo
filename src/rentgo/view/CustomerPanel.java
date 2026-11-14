@@ -1,11 +1,10 @@
 package rentgo.view;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +30,10 @@ public class CustomerPanel extends JPanel {
 
     private final JTextField nameField = new JTextField(14);
     private final JTextField nationalIdField = new JTextField(14);
-    private final JTextField phoneNumberField = new JTextField(14);
-    private final JTextArea addressArea = new JTextArea(3, 14);
-    private final JTextField searchField = new JTextField(14);
+    private final JTextField phoneField = new JTextField(14);
+    private final JTextArea addressArea = new JTextArea(4, 14);
+
+    private final JTextField searchField = new JTextField(20);
 
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new Object[] {"ID", "Nama", "NIK", "Telepon", "Alamat"}, 0) {
@@ -43,6 +43,7 @@ public class CustomerPanel extends JPanel {
         }
     };
     private final JTable customerTable = new JTable(tableModel);
+    private final JLabel countLabel = UiStyle.mutedLabel("0 pelanggan");
 
     private final JButton addButton = new JButton("Tambah");
     private final JButton updateButton = new JButton("Ubah");
@@ -50,9 +51,21 @@ public class CustomerPanel extends JPanel {
     private final JButton clearButton = new JButton("Bersihkan");
 
     public CustomerPanel() {
-        super(new BorderLayout(8, 8));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        buildSearchBar();
+        super(new BorderLayout(16, 16));
+        setBackground(UiStyle.PAGE);
+        setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+
+        addressArea.setLineWrap(true);
+        addressArea.setWrapStyleWord(true);
+        addressArea.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+
+        UiStyle.placeholder(nameField, "Nama lengkap");
+        UiStyle.placeholder(nationalIdField, "16 digit NIK");
+        UiStyle.placeholder(phoneField, "Contoh: 081234567890");
+        UiStyle.placeholder(searchField, "Cari nama atau NIK");
+        addressArea.putClientProperty("JTextArea.placeholderText", "Alamat lengkap");
+
+        buildHeader();
         buildForm();
         buildTable();
     }
@@ -74,6 +87,7 @@ public class CustomerPanel extends JPanel {
                     customer.getAddress()
             });
         }
+        countLabel.setText(data.size() + " pelanggan");
     }
 
     public void setForm(Customer customer) {
@@ -83,14 +97,14 @@ public class CustomerPanel extends JPanel {
         }
         nameField.setText(customer.getName());
         nationalIdField.setText(customer.getNationalId());
-        phoneNumberField.setText(customer.getPhoneNumber());
+        phoneField.setText(customer.getPhoneNumber());
         addressArea.setText(customer.getAddress());
     }
 
     public void clearForm() {
         nameField.setText("");
         nationalIdField.setText("");
-        phoneNumberField.setText("");
+        phoneField.setText("");
         addressArea.setText("");
         customerTable.clearSelection();
     }
@@ -109,7 +123,7 @@ public class CustomerPanel extends JPanel {
     }
 
     public String getPhoneNumber() {
-        return phoneNumberField.getText().trim();
+        return phoneField.getText().trim();
     }
 
     public String getAddress() {
@@ -137,31 +151,43 @@ public class CustomerPanel extends JPanel {
         return customerTable.getSelectedRow();
     }
 
-    private void buildSearchBar() {
-        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        searchBar.add(new JLabel("Cari"));
+    private void buildHeader() {
+        JPanel header = new JPanel(new BorderLayout(16, 0));
+        header.setOpaque(false);
+        header.add(UiStyle.pageTitle("Data Pelanggan"), BorderLayout.WEST);
+
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        searchBar.setOpaque(false);
         searchBar.add(searchField);
 
         JButton searchButton = new JButton("Cari");
+        UiStyle.primary(searchButton);
         searchButton.addActionListener(event -> search());
         searchBar.add(searchButton);
+        header.add(searchBar, BorderLayout.EAST);
 
         searchField.addActionListener(event -> search());
-        add(searchBar, BorderLayout.NORTH);
+        add(header, BorderLayout.NORTH);
     }
 
     private void buildForm() {
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        card.setPreferredSize(new Dimension(350, 0));
+        card.add(UiStyle.sectionTitle("Form Pelanggan"), BorderLayout.NORTH);
+
         JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createTitledBorder("Form Pelanggan"));
-        addRow(form, 0, "Nama", nameField);
-        addRow(form, 1, "NIK", nationalIdField);
-        addRow(form, 2, "Telepon", phoneNumberField);
+        form.setOpaque(false);
+        UiStyle.formRow(form, 0, "Nama", nameField);
+        UiStyle.formRow(form, 1, "NIK", nationalIdField);
+        UiStyle.formRow(form, 2, "Telepon", phoneField);
+        UiStyle.formRow(form, 3, "Alamat", new JScrollPane(addressArea));
+        UiStyle.formFiller(form, 4);
+        card.add(form, BorderLayout.CENTER);
 
-        addressArea.setLineWrap(true);
-        addressArea.setWrapStyleWord(true);
-        addRow(form, 3, "Alamat", new JScrollPane(addressArea));
-
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        JPanel actions = new JPanel(new GridLayout(2, 2, 8, 8));
+        actions.setOpaque(false);
+        UiStyle.primary(addButton);
+        UiStyle.danger(deleteButton);
         addButton.addActionListener(event -> {
             if (controller != null) controller.addCustomer();
         });
@@ -178,50 +204,38 @@ public class CustomerPanel extends JPanel {
         actions.add(updateButton);
         actions.add(deleteButton);
         actions.add(clearButton);
+        card.add(actions, BorderLayout.SOUTH);
 
-        GridBagConstraints actionConstraints = new GridBagConstraints();
-        actionConstraints.gridx = 0;
-        actionConstraints.gridy = 4;
-        actionConstraints.gridwidth = 2;
-        actionConstraints.weightx = 1;
-        actionConstraints.fill = GridBagConstraints.HORIZONTAL;
-        actionConstraints.insets = new Insets(8, 4, 4, 4);
-        form.add(actions, actionConstraints);
-
-        add(form, BorderLayout.WEST);
+        add(card, BorderLayout.WEST);
     }
 
     private void buildTable() {
         customerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        customerTable.setFillsViewportHeight(true);
+        UiStyle.table(customerTable);
+        customerTable.getColumnModel().getColumn(0).setMaxWidth(60);
         customerTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting() && controller != null) {
                 controller.selectRow(getSelectedIndex());
             }
         });
-        add(new JScrollPane(customerTable), BorderLayout.CENTER);
+
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(UiStyle.sectionTitle("Daftar Pelanggan"), BorderLayout.WEST);
+        top.add(countLabel, BorderLayout.EAST);
+        card.add(top, BorderLayout.NORTH);
+
+        JScrollPane scrollPane = new JScrollPane(customerTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(UiStyle.CARD);
+        card.add(scrollPane, BorderLayout.CENTER);
+        add(card, BorderLayout.CENTER);
     }
 
     private void search() {
         if (controller != null) {
             controller.search();
         }
-    }
-
-    private void addRow(JPanel form, int row, String label, Component component) {
-        GridBagConstraints labelConstraints = new GridBagConstraints();
-        labelConstraints.gridx = 0;
-        labelConstraints.gridy = row;
-        labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = new Insets(4, 4, 4, 8);
-        form.add(new JLabel(label), labelConstraints);
-
-        GridBagConstraints fieldConstraints = new GridBagConstraints();
-        fieldConstraints.gridx = 1;
-        fieldConstraints.gridy = row;
-        fieldConstraints.weightx = 1;
-        fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        fieldConstraints.insets = new Insets(4, 0, 4, 4);
-        form.add(component, fieldConstraints);
     }
 }

@@ -1,11 +1,9 @@
 package rentgo.view;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
+import java.awt.Dimension;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,14 +24,14 @@ import rentgo.controller.UserManagementController;
 import rentgo.model.Role;
 import rentgo.model.Staff;
 
-/** Staff account management panel. */
+/** Staff account management panel (Admin only). */
 public class UserManagementPanel extends JPanel {
     private UserManagementController controller;
-    private final List<Staff> staffMembers = new ArrayList<>();
+    private final List<Staff> accounts = new ArrayList<>();
 
     private final JTextField nameField = new JTextField(14);
     private final JTextField usernameField = new JTextField(14);
-    private final JTextField phoneNumberField = new JTextField(14);
+    private final JTextField phoneField = new JTextField(14);
     private final JPasswordField passwordField = new JPasswordField(14);
     private final JComboBox<Role> roleCombo = new JComboBox<>(Role.values());
 
@@ -44,7 +42,8 @@ public class UserManagementPanel extends JPanel {
             return false;
         }
     };
-    private final JTable staffTable = new JTable(tableModel);
+    private final JTable accountTable = new JTable(tableModel);
+    private final JLabel countLabel = UiStyle.mutedLabel("0 akun");
 
     private final JButton addButton = new JButton("Tambah");
     private final JButton updateButton = new JButton("Ubah");
@@ -52,8 +51,17 @@ public class UserManagementPanel extends JPanel {
     private final JButton clearButton = new JButton("Bersihkan");
 
     public UserManagementPanel() {
-        super(new BorderLayout(8, 8));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        super(new BorderLayout(16, 16));
+        setBackground(UiStyle.PAGE);
+        setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+
+        UiStyle.placeholder(nameField, "Nama lengkap");
+        UiStyle.placeholder(usernameField, "Minimal 3 karakter");
+        UiStyle.placeholder(phoneField, "Contoh: 081234567890");
+        passwordField.putClientProperty("JTextField.placeholderText", "Minimal 6 karakter");
+        passwordField.putClientProperty("JPasswordField.showRevealButton", Boolean.TRUE);
+
+        add(UiStyle.pageTitle("Kelola Akun"), BorderLayout.NORTH);
         buildForm();
         buildTable();
     }
@@ -63,8 +71,8 @@ public class UserManagementPanel extends JPanel {
     }
 
     public void setTableData(List<Staff> data) {
-        staffMembers.clear();
-        staffMembers.addAll(data);
+        accounts.clear();
+        accounts.addAll(data);
         tableModel.setRowCount(0);
         for (Staff staff : data) {
             tableModel.addRow(new Object[] {
@@ -75,6 +83,7 @@ public class UserManagementPanel extends JPanel {
                     staff.getRole()
             });
         }
+        countLabel.setText(data.size() + " akun");
     }
 
     public void setForm(Staff staff) {
@@ -84,7 +93,7 @@ public class UserManagementPanel extends JPanel {
         }
         nameField.setText(staff.getName());
         usernameField.setText(staff.getUsername());
-        phoneNumberField.setText(staff.getPhoneNumber());
+        phoneField.setText(staff.getPhoneNumber());
         passwordField.setText("");
         roleCombo.setSelectedItem(staff.getRole());
     }
@@ -92,15 +101,15 @@ public class UserManagementPanel extends JPanel {
     public void clearForm() {
         nameField.setText("");
         usernameField.setText("");
-        phoneNumberField.setText("");
+        phoneField.setText("");
         passwordField.setText("");
-        roleCombo.setSelectedIndex(0);
-        staffTable.clearSelection();
+        roleCombo.setSelectedItem(Role.STAFF);
+        accountTable.clearSelection();
     }
 
     public Staff getSelectedStaff() {
         int index = getSelectedIndex();
-        return index >= 0 && index < staffMembers.size() ? staffMembers.get(index) : null;
+        return index >= 0 && index < accounts.size() ? accounts.get(index) : null;
     }
 
     public String getNameField() {
@@ -112,7 +121,7 @@ public class UserManagementPanel extends JPanel {
     }
 
     public String getPhoneNumber() {
-        return phoneNumberField.getText().trim();
+        return phoneField.getText().trim();
     }
 
     public char[] getPassword() {
@@ -137,27 +146,31 @@ public class UserManagementPanel extends JPanel {
     }
 
     public int getSelectedIndex() {
-        return staffTable.getSelectedRow();
+        return accountTable.getSelectedRow();
     }
 
     private void buildForm() {
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        card.setPreferredSize(new Dimension(350, 0));
+        card.add(UiStyle.sectionTitle("Form Akun"), BorderLayout.NORTH);
+
         JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createTitledBorder("Form Akun"));
-        addRow(form, 0, "Nama", nameField);
-        addRow(form, 1, "Username", usernameField);
-        addRow(form, 2, "Telepon", phoneNumberField);
-        addRow(form, 3, "Password", passwordField);
-        addRow(form, 4, "Role", roleCombo);
+        form.setOpaque(false);
+        UiStyle.formRow(form, 0, "Nama", nameField);
+        UiStyle.formRow(form, 1, "Username", usernameField);
+        UiStyle.formRow(form, 2, "Telepon", phoneField);
+        UiStyle.formRow(form, 3, "Password", passwordField);
+        UiStyle.formRow(form, 4, "Role", roleCombo);
+        UiStyle.formNote(form, 5, UiStyle.mutedLabel("Kosongkan password saat mengubah akun."));
+        UiStyle.formFiller(form, 6);
+        card.add(form, BorderLayout.CENTER);
 
-        GridBagConstraints hintConstraints = new GridBagConstraints();
-        hintConstraints.gridx = 0;
-        hintConstraints.gridy = 5;
-        hintConstraints.gridwidth = 2;
-        hintConstraints.anchor = GridBagConstraints.WEST;
-        hintConstraints.insets = new Insets(0, 4, 4, 4);
-        form.add(new JLabel("Kosongkan password saat mengubah akun."), hintConstraints);
-
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        JPanel actions = new JPanel(new GridLayout(2, 2, 8, 8));
+        actions.setOpaque(false);
+        UiStyle.primary(addButton);
+        UiStyle.danger(deleteButton);
+        // NOTE: method names below follow the CustomerController pattern; rename if your
+        // UserManagementController uses different names.
         addButton.addActionListener(event -> {
             if (controller != null) controller.addStaff();
         });
@@ -174,44 +187,32 @@ public class UserManagementPanel extends JPanel {
         actions.add(updateButton);
         actions.add(deleteButton);
         actions.add(clearButton);
+        card.add(actions, BorderLayout.SOUTH);
 
-        GridBagConstraints actionConstraints = new GridBagConstraints();
-        actionConstraints.gridx = 0;
-        actionConstraints.gridy = 6;
-        actionConstraints.gridwidth = 2;
-        actionConstraints.weightx = 1;
-        actionConstraints.fill = GridBagConstraints.HORIZONTAL;
-        actionConstraints.insets = new Insets(8, 4, 4, 4);
-        form.add(actions, actionConstraints);
-
-        add(form, BorderLayout.WEST);
+        add(card, BorderLayout.WEST);
     }
 
     private void buildTable() {
-        staffTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        staffTable.setFillsViewportHeight(true);
-        staffTable.getSelectionModel().addListSelectionListener(event -> {
+        accountTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        UiStyle.table(accountTable);
+        accountTable.getColumnModel().getColumn(0).setMaxWidth(60);
+        accountTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting() && controller != null) {
                 controller.selectRow(getSelectedIndex());
             }
         });
-        add(new JScrollPane(staffTable), BorderLayout.CENTER);
-    }
 
-    private void addRow(JPanel form, int row, String label, Component component) {
-        GridBagConstraints labelConstraints = new GridBagConstraints();
-        labelConstraints.gridx = 0;
-        labelConstraints.gridy = row;
-        labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = new Insets(4, 4, 4, 8);
-        form.add(new JLabel(label), labelConstraints);
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(UiStyle.sectionTitle("Daftar Akun"), BorderLayout.WEST);
+        top.add(countLabel, BorderLayout.EAST);
+        card.add(top, BorderLayout.NORTH);
 
-        GridBagConstraints fieldConstraints = new GridBagConstraints();
-        fieldConstraints.gridx = 1;
-        fieldConstraints.gridy = row;
-        fieldConstraints.weightx = 1;
-        fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        fieldConstraints.insets = new Insets(4, 0, 4, 4);
-        form.add(component, fieldConstraints);
+        JScrollPane scrollPane = new JScrollPane(accountTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(UiStyle.CARD);
+        card.add(scrollPane, BorderLayout.CENTER);
+        add(card, BorderLayout.CENTER);
     }
 }

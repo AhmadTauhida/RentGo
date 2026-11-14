@@ -2,15 +2,18 @@ package rentgo.view;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -41,6 +44,8 @@ import rentgo.util.Session;
 
 /** Vehicle management panel. */
 public class VehiclePanel extends JPanel {
+    private static final int LABEL_WIDTH = 115;
+
     private VehicleController controller;
     private final List<Vehicle> vehicles = new ArrayList<>();
 
@@ -60,7 +65,7 @@ public class VehiclePanel extends JPanel {
     private final JSpinner seatCountSpinner = new JSpinner(new SpinnerNumberModel(30, 1, 200, 1));
     private final JPanel specificFields = new JPanel(new GridBagLayout());
 
-    private final JTextField searchField = new JTextField(14);
+    private final JTextField searchField = new JTextField(20);
     private final JComboBox<VehicleType> searchTypeCombo = createTypeFilter();
     private final JComboBox<VehicleStatus> searchStatusCombo = createStatusFilter();
 
@@ -72,6 +77,7 @@ public class VehiclePanel extends JPanel {
         }
     };
     private final JTable vehicleTable = new JTable(tableModel);
+    private final JLabel countLabel = UiStyle.mutedLabel("0 kendaraan");
 
     private final JButton addButton = new JButton("Tambah");
     private final JButton updateButton = new JButton("Ubah");
@@ -79,17 +85,29 @@ public class VehiclePanel extends JPanel {
     private final JButton clearButton = new JButton("Bersihkan");
 
     public VehiclePanel() {
-        super(new BorderLayout(8, 8));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        super(new BorderLayout(16, 16));
+        setBackground(UiStyle.PAGE);
+        setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
 
         ButtonGroup transmissionGroup = new ButtonGroup();
         transmissionGroup.add(manualRadio);
         transmissionGroup.add(automaticRadio);
         manualRadio.setSelected(true);
+        manualRadio.setOpaque(false);
+        automaticRadio.setOpaque(false);
+        transmissionPanel.setOpaque(false);
         transmissionPanel.add(manualRadio);
+        transmissionPanel.add(Box.createHorizontalStrut(12));
         transmissionPanel.add(automaticRadio);
+        specificFields.setOpaque(false);
 
-        buildSearchBar();
+        UiStyle.plainYear(manufactureYearSpinner);
+        UiStyle.placeholder(plateNumberField, "Contoh: H 1234 AB");
+        UiStyle.placeholder(brandField, "Contoh: Toyota Avanza");
+        UiStyle.placeholder(baseRateField, "Contoh: 350000");
+        UiStyle.placeholder(searchField, "Cari plat nomor atau merek");
+
+        buildHeader();
         buildForm();
         buildTable();
 
@@ -117,6 +135,7 @@ public class VehiclePanel extends JPanel {
                     vehicle.getStatus()
             });
         }
+        countLabel.setText(data.size() + " kendaraan");
     }
 
     public void setForm(Vehicle vehicle) {
@@ -235,28 +254,36 @@ public class VehiclePanel extends JPanel {
         return vehicleTable.getSelectedRow();
     }
 
-    private void buildSearchBar() {
-        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        searchBar.add(new JLabel("Cari"));
+    private void buildHeader() {
+        JPanel header = new JPanel(new BorderLayout(16, 0));
+        header.setOpaque(false);
+        header.add(UiStyle.pageTitle("Data Kendaraan"), BorderLayout.WEST);
+
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        searchBar.setOpaque(false);
         searchBar.add(searchField);
-        searchBar.add(new JLabel("Jenis"));
         searchBar.add(searchTypeCombo);
-        searchBar.add(new JLabel("Status"));
         searchBar.add(searchStatusCombo);
 
         JButton searchButton = new JButton("Cari");
+        UiStyle.primary(searchButton);
         searchButton.addActionListener(event -> search());
         searchBar.add(searchButton);
+        header.add(searchBar, BorderLayout.EAST);
 
         searchField.addActionListener(event -> search());
         searchTypeCombo.addActionListener(event -> search());
         searchStatusCombo.addActionListener(event -> search());
-        add(searchBar, BorderLayout.NORTH);
+        add(header, BorderLayout.NORTH);
     }
 
     private void buildForm() {
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        card.setPreferredSize(new Dimension(350, 0));
+        card.add(UiStyle.sectionTitle("Form Kendaraan"), BorderLayout.NORTH);
+
         JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createTitledBorder("Form Kendaraan"));
+        form.setOpaque(false);
         addRow(form, 0, "Plat nomor", plateNumberField);
         addRow(form, 1, "Merek", brandField);
         addRow(form, 2, "Tahun produksi", manufactureYearSpinner);
@@ -270,10 +297,23 @@ public class VehiclePanel extends JPanel {
         specificConstraints.gridwidth = 2;
         specificConstraints.weightx = 1;
         specificConstraints.fill = GridBagConstraints.HORIZONTAL;
-        specificConstraints.insets = new Insets(4, 4, 4, 4);
         form.add(specificFields, specificConstraints);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        // Filler row: pushes all fields to the top instead of centering them vertically.
+        GridBagConstraints filler = new GridBagConstraints();
+        filler.gridx = 0;
+        filler.gridy = 7;
+        filler.gridwidth = 2;
+        filler.weighty = 1;
+        JPanel fillerPanel = new JPanel();
+        fillerPanel.setOpaque(false);
+        form.add(fillerPanel, filler);
+        card.add(form, BorderLayout.CENTER);
+
+        JPanel actions = new JPanel(new GridLayout(2, 2, 8, 8));
+        actions.setOpaque(false);
+        UiStyle.primary(addButton);
+        UiStyle.danger(deleteButton);
         addButton.addActionListener(event -> {
             if (controller != null) controller.addVehicle();
         });
@@ -290,28 +330,36 @@ public class VehiclePanel extends JPanel {
         actions.add(updateButton);
         actions.add(deleteButton);
         actions.add(clearButton);
+        card.add(actions, BorderLayout.SOUTH);
 
-        GridBagConstraints actionConstraints = new GridBagConstraints();
-        actionConstraints.gridx = 0;
-        actionConstraints.gridy = 7;
-        actionConstraints.gridwidth = 2;
-        actionConstraints.weightx = 1;
-        actionConstraints.fill = GridBagConstraints.HORIZONTAL;
-        actionConstraints.insets = new Insets(8, 4, 4, 4);
-        form.add(actions, actionConstraints);
-
-        add(form, BorderLayout.WEST);
+        add(card, BorderLayout.WEST);
     }
 
     private void buildTable() {
         vehicleTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        vehicleTable.setFillsViewportHeight(true);
+        UiStyle.table(vehicleTable);
+        vehicleTable.getColumnModel().getColumn(0).setMaxWidth(60);
+        vehicleTable.getColumnModel().getColumn(3).setMaxWidth(80);
+        vehicleTable.getColumnModel().getColumn(4).setCellRenderer(UiStyle.rightRenderer());
+        vehicleTable.getColumnModel().getColumn(6).setCellRenderer(UiStyle.statusRenderer());
         vehicleTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting() && controller != null) {
                 controller.selectRow(getSelectedIndex());
             }
         });
-        add(new JScrollPane(vehicleTable), BorderLayout.CENTER);
+
+        UiStyle.Card card = new UiStyle.Card(new BorderLayout(0, 12));
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(UiStyle.sectionTitle("Daftar Kendaraan"), BorderLayout.WEST);
+        top.add(countLabel, BorderLayout.EAST);
+        card.add(top, BorderLayout.NORTH);
+
+        JScrollPane scrollPane = new JScrollPane(vehicleTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(UiStyle.CARD);
+        card.add(scrollPane, BorderLayout.CENTER);
+        add(card, BorderLayout.CENTER);
     }
 
     private void search() {
@@ -326,11 +374,11 @@ public class VehiclePanel extends JPanel {
         if (type != null) {
             switch (type) {
                 case CAR:
-                    addSpecificRow(0, "Kapasitas penumpang", passengerCapacitySpinner);
+                    addSpecificRow(0, "Penumpang", passengerCapacitySpinner);
                     addSpecificRow(1, "Transmisi", transmissionPanel);
                     break;
                 case MOTORCYCLE:
-                    addSpecificRow(0, "Kapasitas mesin (CC)", engineCcSpinner);
+                    addSpecificRow(0, "Mesin (CC)", engineCcSpinner);
                     break;
                 case BUS:
                     addSpecificRow(0, "Jumlah kursi", seatCountSpinner);
@@ -353,37 +401,31 @@ public class VehiclePanel extends JPanel {
     }
 
     private void addRow(JPanel form, int row, String label, Component component) {
-        GridBagConstraints labelConstraints = new GridBagConstraints();
-        labelConstraints.gridx = 0;
-        labelConstraints.gridy = row;
-        labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = new Insets(4, 4, 4, 8);
-        form.add(new JLabel(label), labelConstraints);
-
-        GridBagConstraints fieldConstraints = new GridBagConstraints();
-        fieldConstraints.gridx = 1;
-        fieldConstraints.gridy = row;
-        fieldConstraints.weightx = 1;
-        fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        fieldConstraints.insets = new Insets(4, 0, 4, 4);
-        form.add(component, fieldConstraints);
+        addLabeled(form, row, label, component, new Insets(6, 0, 6, 8), new Insets(6, 0, 6, 0));
     }
 
     private void addSpecificRow(int row, String label, Component component) {
+        addLabeled(specificFields, row, label, component, new Insets(6, 0, 6, 8), new Insets(6, 0, 6, 0));
+    }
+
+    private void addLabeled(JPanel target, int row, String label, Component component,
+            Insets labelInsets, Insets fieldInsets) {
+        JLabel labelComponent = new JLabel(label);
+        labelComponent.setPreferredSize(new Dimension(LABEL_WIDTH, labelComponent.getPreferredSize().height));
         GridBagConstraints labelConstraints = new GridBagConstraints();
         labelConstraints.gridx = 0;
         labelConstraints.gridy = row;
         labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = new Insets(4, 0, 4, 8);
-        specificFields.add(new JLabel(label), labelConstraints);
+        labelConstraints.insets = labelInsets;
+        target.add(labelComponent, labelConstraints);
 
         GridBagConstraints fieldConstraints = new GridBagConstraints();
         fieldConstraints.gridx = 1;
         fieldConstraints.gridy = row;
         fieldConstraints.weightx = 1;
         fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
-        fieldConstraints.insets = new Insets(4, 0, 4, 0);
-        specificFields.add(component, fieldConstraints);
+        fieldConstraints.insets = fieldInsets;
+        target.add(component, fieldConstraints);
     }
 
     private static JComboBox<VehicleType> createTypeFilter() {
