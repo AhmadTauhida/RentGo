@@ -26,6 +26,9 @@ public final class Theme {
     public static final Color ACCENT_LIGHT = Color.decode(ACCENT_LIGHT_HEX);
     public static final Color FIELD_GREEN = Color.decode(FIELD_GREEN_HEX);
 
+    // Light green background for the login page
+    public static final Color MINT = new Color(0xD3EDD8);
+
     // Bone white surfaces
     public static final Color PAGE = new Color(0xF4F2EA);
     public static final Color CARD = new Color(0xFCFBF7);

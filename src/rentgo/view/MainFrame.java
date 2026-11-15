@@ -8,16 +8,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.HashMap;
 import java.util.Map;
-<<<<<<< HEAD
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.BorderFactory;
-=======
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
->>>>>>> branch 'main' of https://github.com/AhmadTauhida/RentGo.git
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,11 +21,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
-<<<<<<< HEAD
 
-=======
+
 import rentgo.controller.CustomerController;
->>>>>>> branch 'main' of https://github.com/AhmadTauhida/RentGo.git
+
 import rentgo.controller.LoginController;
 import rentgo.controller.RentalController;
 import rentgo.controller.ReportController;
