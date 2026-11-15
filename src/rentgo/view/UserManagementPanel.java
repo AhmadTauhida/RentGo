@@ -2,6 +2,7 @@ package rentgo.view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class UserManagementPanel extends JPanel {
     private final JTextField phoneField = new JTextField(14);
     private final JPasswordField passwordField = new JPasswordField(14);
     private final JComboBox<Role> roleCombo = new JComboBox<>(Role.values());
+    private final JTextField searchField = new JTextField(20);
 
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new Object[] {"ID", "Nama", "Username", "Telepon", "Role"}, 0) {
@@ -58,10 +60,11 @@ public class UserManagementPanel extends JPanel {
         UiStyle.placeholder(nameField, "Nama lengkap");
         UiStyle.placeholder(usernameField, "Minimal 3 karakter");
         UiStyle.placeholder(phoneField, "Contoh: 081234567890");
+        UiStyle.placeholder(searchField, "Cari nama, username, atau telepon");
         passwordField.putClientProperty("JTextField.placeholderText", "Minimal 6 karakter");
-        passwordField.putClientProperty("JPasswordField.showRevealButton", Boolean.TRUE);
+        PasswordEye.attach(passwordField);
 
-        add(UiStyle.pageTitle("Kelola Akun"), BorderLayout.NORTH);
+        buildHeader();
         buildForm();
         buildTable();
     }
@@ -145,8 +148,31 @@ public class UserManagementPanel extends JPanel {
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
 
+    public String getSearchKeyword() {
+        return searchField.getText().trim();
+    }
+
     public int getSelectedIndex() {
         return accountTable.getSelectedRow();
+    }
+
+    private void buildHeader() {
+        JPanel header = new JPanel(new BorderLayout(16, 0));
+        header.setOpaque(false);
+        header.add(UiStyle.pageTitle("Kelola Akun"), BorderLayout.WEST);
+
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        searchBar.setOpaque(false);
+        searchBar.add(searchField);
+
+        JButton searchButton = new JButton("Cari");
+        UiStyle.primary(searchButton);
+        searchButton.addActionListener(event -> search());
+        searchBar.add(searchButton);
+        header.add(searchBar, BorderLayout.EAST);
+
+        searchField.addActionListener(event -> search());
+        add(header, BorderLayout.NORTH);
     }
 
     private void buildForm() {
@@ -214,5 +240,11 @@ public class UserManagementPanel extends JPanel {
         scrollPane.getViewport().setBackground(UiStyle.CARD);
         card.add(scrollPane, BorderLayout.CENTER);
         add(card, BorderLayout.CENTER);
+    }
+
+    private void search() {
+        if (controller != null) {
+            controller.search();
+        }
     }
 }

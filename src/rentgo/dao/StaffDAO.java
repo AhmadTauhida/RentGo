@@ -95,6 +95,30 @@ public class StaffDAO implements CrudDAO<Staff> {
         return staffMembers;
     }
 
+    public List<Staff> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return findAll();
+        }
+        String pattern = "%" + keyword.trim().toLowerCase() + "%";
+        List<Staff> staffMembers = new ArrayList<>();
+        Connection connection = database.getConnection();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT * FROM staff WHERE LOWER(name) LIKE ? OR LOWER(username) LIKE ? "
+                + "OR phone_number LIKE ? ORDER BY id")) {
+            statement.setString(1, pattern);
+            statement.setString(2, pattern);
+            statement.setString(3, pattern);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    staffMembers.add(map(resultSet));
+                }
+            }
+        } catch (SQLException e) {
+            throw DatabaseConnection.translate(e);
+        }
+        return staffMembers;
+    }
+
     public Staff findByUsername(String username) {
         Connection connection = database.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(

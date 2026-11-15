@@ -87,7 +87,7 @@ public class LoginFrame extends JFrame {
         UiStyle.placeholder(usernameField, "Username");
         passwordField.putClientProperty("JTextField.placeholderText", "Password");
         // Eye icon at the right edge of the password field: click to show or hide the password.
-        passwordField.putClientProperty("JPasswordField.showRevealButton", Boolean.TRUE);
+        PasswordEye.attach(passwordField);
 
         UiStyle.primary(loginButton);
         UiStyle.accent(cancelButton);

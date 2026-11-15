@@ -33,6 +33,16 @@ public class UserManagementController {
         }
     }
 
+    public void search() {
+        try {
+            current.clear();
+            current.addAll(dao.search(view.getSearchKeyword()));
+            view.setTableData(current);
+        } catch (DatabaseException e) {
+            view.showError(e.getMessage());
+        }
+    }
+
     public void addStaff() {
         try {
             dao.add(readForm(0, null));
