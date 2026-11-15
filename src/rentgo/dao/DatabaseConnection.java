@@ -60,7 +60,29 @@ public final class DatabaseConnection {
             return new DatabaseException(
                     "Data masih dipakai transaksi lain sehingga tidak dapat dihapus.", cause);
         }
-        return new DatabaseException("Operasi database gagal. " + CONFIG_HINT, cause);
+        if (state != null && state.startsWith("28")) {
+            return new DatabaseException(
+                "Autentikasi database gagal. Periksa db.user dan db.password.", cause);
+        }
+        if ("3D000".equals(state)) {
+            return new DatabaseException(
+                "Database tujuan tidak ditemukan. Periksa db.url dan nama database.", cause);
+        }
+        if ("42P01".equals(state)) {
+            return new DatabaseException(
+                "Tabel database belum tersedia. Jalankan sql/schema.sql pada database yang benar.",
+                cause);
+        }
+        if ("3F000".equals(state)) {
+            return new DatabaseException(
+                "Schema database tidak ditemukan. Periksa konfigurasi database Neon.", cause);
+        }
+        if (state != null && state.startsWith("08")) {
+            return new DatabaseException(
+                "Koneksi ke database terputus. Periksa internet, firewall, dan status Neon.", cause);
+        }
+        return new DatabaseException(
+            "Operasi database gagal" + formatSqlState(state) + ". " + CONFIG_HINT, cause);
     }
 
     private Connection connectWithRetry() {
@@ -80,7 +102,30 @@ public final class DatabaseConnection {
                 failure = e;
             }
         }
-        throw new DatabaseException("Database tidak dapat diakses. " + CONFIG_HINT, failure);
+        throw connectionFailure(failure);
+    }
+
+    private DatabaseException connectionFailure(SQLException cause) {
+        String state = cause == null ? null : cause.getSQLState();
+        if (state != null && state.startsWith("28")) {
+            return new DatabaseException(
+                    "Login database ditolak. Periksa db.user dan db.password.", cause);
+        }
+        if ("3D000".equals(state)) {
+            return new DatabaseException(
+                    "Database tujuan tidak ditemukan. Periksa db.url dan nama database.", cause);
+        }
+        if (state != null && state.startsWith("08")) {
+            return new DatabaseException(
+                    "Neon tidak dapat dihubungi. Periksa internet, firewall, URL, dan status Neon.",
+                    cause);
+        }
+        return new DatabaseException(
+                "Koneksi database gagal" + formatSqlState(state) + ". " + CONFIG_HINT, cause);
+    }
+
+    private static String formatSqlState(String state) {
+        return state == null ? "" : " (SQLState " + state + ")";
     }
 
     private Properties loadConfig() {

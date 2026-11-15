@@ -3,3 +3,4 @@
 *.class
 config/db.properties
 *.log
+DATABASE_DIAGNOSTICS.md
